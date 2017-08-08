@@ -1,6 +1,7 @@
 #dependencies
 from bs4 import BeautifulSoup
 import requests
+import re
 
 #stores url
 url = raw_input("Enter a website to extract the URL's from: ")
@@ -10,28 +11,22 @@ req = requests.get(url)
 #stores All the text on that page 
 data = req.text
 
-extract = [];
+extract = "";
 
 #soup ready
 soup = BeautifulSoup(data)
 
 #replace em with required html header
 for link in soup.find_all('p'):
-    extract.append(str(link))
+    extract=extract+(str(link))
 
-#File created 
-#File re-writtern each time 
-f1=open('Halloween_Data', 'w+')
+#File created  
+f1=open('Halloween_Data', 'a')
 
-#Slight Processing
-for sentence in extract:
-	sentence = sentence[4:len(sentence)-5]
-	for char in sentence:
-		#replace kink(~) with any other character that precedes
-		#author name/unwanted excess in data
-		if char=='~':
-			break
-		f1.write(char)
-	f1.write('\n')
+#Tag removal
+result = re.sub('<.*?>','',extract)
 
+#Data Writtern
+f1.write(result)
+	
 f1.close()
