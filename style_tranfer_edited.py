@@ -9,14 +9,14 @@ import pandas as pd
 
 vgg=scipy.io.loadmat("vgg.mat")
 layers=vgg['layers']#0 l 0 0 2 0 0
-
+style_layer=["conv1_1","conv2_1","conv3_1","conv4_1","conv5_1"]
 #intializing output directory
 output="documents/greetings/output"
 image_for_style="/Users/aparna/Documents/greetings/style.jpg"
 content_image="/Users/aparna/Documents/greetings/i.jpg"
 
-image_width=278
-image_height=181
+image_width=800
+image_height=400
 color_channels=3
 
 beta=5#less content loss
@@ -26,6 +26,7 @@ mean_values= np.array([123.68, 116.779, 103.939]).reshape((1,1,1,3))
 
 def preprocess_input(path):
     image = scipy.misc.imread(path)
+    image=scipy.misc.imresize(image, (image_height, image_width,color_channels))
     image = np.reshape(image, ((1,) + image.shape))
     image = image - mean_values
     return image
@@ -108,7 +109,7 @@ def gram_matrix(n,m,x):
     x = tf.reshape(x, (m, n))
     return tf.matmul(tf.transpose(x), x)#finding aggregate
 
-def style_loss_single(a,g,x):
+def style_loss_single(a,g):
     m=a.shape[1]*a.shape[2]
     n=a.shape[3]
     A=gram_matrix(n,m,a)
@@ -136,10 +137,12 @@ sess.run(tf.global_variables_initializer())
 
 v=tf.Variable(graph['input'])
 v.assign(content_image)
-sess.run(v)
+#sess.run(v)
 c_l=content_loss(sess.run(graph['conv4_2']), graph['conv4_2'])
 
-sess.run(tf.assign(graph['input'],style))
+var=tf.Variable(graph['input'])
+var.assign(style)
+#sess.run(style)
 s_l=total_style_loss()
 
 total_loss = beta * c_l + alpha * s_l
@@ -148,7 +151,9 @@ optimizer = tf.train.AdamOptimizer(2.0)
 train_step = optimizer.minimize(total_loss)
 
 sess.run(tf.initialize_all_variables())
-sess.run(graph['input'].assign(input))
+var1=tf.Variable(graph['input'])
+var1.assign(input_image)
+sess.run(var1)
 iter=1000
 for it in range(iter):
     sess.run(train_step)
