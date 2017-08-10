@@ -135,14 +135,12 @@ input_image = generate_noise_image(content_image)
 
 sess.run(tf.global_variables_initializer())
 
-v=tf.Variable(graph['input'])
-v.assign(content_image)
-#sess.run(v)
+
+sess.run(tf.Variable(graph['input']).assign(content_image))
 c_l=content_loss(sess.run(graph['conv4_2']), graph['conv4_2'])
 
-var=tf.Variable(graph['input'])
-var.assign(style)
-#sess.run(style)
+
+sess.run(tf.Variable(graph['input']).assign(style))
 s_l=total_style_loss()
 
 total_loss = beta * c_l + alpha * s_l
@@ -151,9 +149,8 @@ optimizer = tf.train.AdamOptimizer(2.0)
 train_step = optimizer.minimize(total_loss)
 
 sess.run(tf.initialize_all_variables())
-var1=tf.Variable(graph['input'])
-var1.assign(input_image)
-sess.run(var1)
+
+sess.run(tf.Variable(graph['input']).assign(input_image))
 iter=1000
 for it in range(iter):
     sess.run(train_step)
