@@ -148,7 +148,7 @@ total_loss = beta * c_l + alpha * s_l
 optimizer = tf.train.AdamOptimizer(2.0)
 train_step = optimizer.minimize(total_loss)
 
-sess.run(tf.initialize_all_variables())
+sess.run(tf.global_variables_initializer())
 
 sess.run(tf.Variable(graph['input']).assign(input_image))
 iter=1000
