@@ -4,20 +4,19 @@ import tensorflow as tf
 import numpy as np
 import scipy.io
 import scipy.misc
-import matplotlib.pyplot as plt
-from matplotlib.pyplot import imshow
+
 import pandas as pd
 
 vgg=scipy.io.loadmat("vgg.mat")
 layers=vgg['layers']#0 l 0 0 2 0 0
 
 #intializing output directory
-output="/documents/greetings/output"
-image_for_style="/documents/greetings/style.jpg"
-content_image="/documents/greetings/images/jpeg"
+output="documents/greetings/output"
+image_for_style="/Users/aparna/Documents/greetings/style.jpg"
+content_image="/Users/aparna/Documents/greetings/i.jpg"
 
-image_width=800
-image_height=600
+image_width=278
+image_height=181
 color_channels=3
 
 beta=5#less content loss
@@ -37,37 +36,65 @@ def output(path,image):
     image = np.clip(image, 0, 255).astype('uint8')
     scipy.misc.imsave(path, image)
 
-style_layer=["conv1_1","conv2_1","conv3_1","conv4_1","conv5_1"]
-#loading the model
+def model():
+    style_layer=["conv1_1","conv2_1","conv3_1","conv4_1","conv5_1"]
+    #loading the model
 
 
-def weight(l):
-    """
-     returns the weights of each of the required layers of VGG19
-    """
-    W=layers[0][l][0][0][2][0][0]
-    b=layers[0][l][0][0][2][0][1]
-    return W,b
+    def weight(l):
+        """
+        returns the weights of each of the required layers of VGG19
+        """
+        W=layers[0][l][0][0][2][0][0]
+        b=layers[0][l][0][0][2][0][1]
+        return W,b
 
-def  relu_func(input):
-    return tf.nn.relu(input)
+    def  relu_func(input):
+        return tf.nn.relu(input)
 
-def conv2d(prev,l):
-    W=weight(l)[0]
-    b=weight(l)[1]
-    W=tf.constant(W)
-    B=tf.constant(b)
-    return tf.nn.conv2d(input=prev,filter=W,strides=[1,1,1,1],padding="SAME")+B
+    def conv2d(prev,l):
+        W=weight(l)[0]
+        b=weight(l)[1]
+        W=tf.constant(W)
+        B= tf.constant(np.reshape(b, (b.size)))
+        return tf.nn.conv2d(input=prev,filter=W,strides=[1,1,1,1],padding="SAME")+B
 
-def relu_plus_conv(prev,l):
-    return relu_func(conv2d(prev,l))
+    def relu_plus_conv(prev,l):
+        return relu_func(conv2d(prev,l))
 
-def pooling(prev):
-    return tf.nn.avg_pool(input=prev,ksize=[1,2,2,1],strides=[1,2,2,1],padding="SAME")
+    def pooling(prev):
+        return tf.nn.avg_pool(input=prev,ksize=[1,2,2,1],strides=[1,2,2,1],padding="SAME")
 
+    graph = {}
+    graph['input'] = tf.cast(tf.Variable(np.zeros((1, image_height, image_width, color_channels))),tf.float32)
+    graph['conv1_1'] = relu_plus_conv(graph['input'], 0)
+    graph['conv1_2'] = relu_plus_conv(graph['conv1_1'], 2)
+    graph['relu1'] = relu_func(graph['conv1_1'])
+
+    graph['conv2_1'] = relu_plus_conv(graph['relu1'], 5)
+    graph['conv2_2'] = relu_plus_conv(graph['conv2_1'], 7)
+    graph['relu2'] = relu_func(graph['conv2_2'])
+
+    graph['conv3_1'] = relu_plus_conv(graph['relu2'], 10)
+    graph['conv3_2'] = relu_plus_conv(graph['conv3_1'], 12)
+    graph['conv3_3'] = relu_plus_conv(graph['conv3_2'], 14)
+    graph['conv3_4'] = relu_plus_conv(graph['conv3_3'], 16)
+    graph['relu3'] = relu_func(graph['conv3_4'])
+
+    graph['conv4_1'] = relu_plus_conv(graph['relu3'], 19)
+    graph['conv4_2'] = relu_plus_conv(graph['conv4_1'], 21)
+    graph['conv4_3'] = relu_plus_conv(graph['conv4_2'], 23)
+    graph['conv4_4'] = relu_plus_conv(graph['conv4_3'], 25)
+    graph['relu4'] = relu_func(graph['conv4_4'])
+
+    graph['conv5_1'] = relu_plus_conv(graph['relu4'], 28)
+    graph['conv5_2'] = relu_plus_conv(graph['conv5_1'], 30)
+    graph['conv5_3'] = relu_plus_conv(graph['conv5_2'], 32)
+    graph['conv5_4'] = relu_plus_conv(graph['conv5_3'], 34)
+    graph['relu5'] = relu_func(graph['conv5_4'])
+    return graph
 
 def generate_noise_image(content_image,):
-    
     noise_image = np.random.uniform(-20, 20,(1, image_height,image_width,color_channels)).astype('float32')
     # White noise image from the content representation. Take a weighted average
     # of the values
@@ -101,44 +128,18 @@ content_image = preprocess_input(content_image)
 
 
 style=preprocess_input(image_for_style)
-
-
-graph={}
-graph['input']=tf.Variable(np.zeros((1,image_width,image_height,color_channels)))
-graph['conv1_1']=relu_plus_conv(graph['input'],0)
-graph['conv1_2']=relu_plus_conv(graph['conv1_1'],2)
-graph['relu1']=relu_func(graph['conv1_1'])
-
-graph['conv2_1']=relu_plus_conv(graph['relu1'],5)
-graph['conv2_2']=relu_plus_conv(graph['conv2_1'],7)
-graph['relu2']=relu_func(graph['conv2_2'])
-
-graph['conv3_1']=relu_plus_conv(graph['relu2'],10)
-graph['conv3_2']=relu_plus_conv(graph['conv3_1'],12)
-graph['conv3_3']=relu_plus_conv(graph['conv3_2'],14)
-graph['conv3_4']=relu_plus_conv(graph['conv3_3'],16)
-graph['relu3']=relu_func(graph['conv3_4'])
-
-graph['conv4_1']=relu_plus_conv(graph['relu3'],19)
-graph['conv4_2']=relu_plus_conv(graph['conv4_1'],21)
-graph['conv4_3']=relu_plus_conv(graph['conv4_2'],23)
-graph['conv4_4']=relu_plus_conv(graph['conv4_3'],25)
-graph['relu4']=relu_func(graph['conv4_4'])
-
-graph['conv5_1']=relu_plus_conv(graph['relu4'],28)
-graph['conv5_2']=relu_plus_conv(graph['conv5_1'],30)
-graph['conv5_3']=relu_plus_conv(graph['conv5_2'],32)
-graph['conv5_4']=relu_plus_conv(graph['conv5_3'],34)
-graph['relu5']=relu_func(graph['conv5_4'])
+graph= model()
 
 input_image = generate_noise_image(content_image)
 
-sess.run(tf.initialize_all_variables())
+sess.run(tf.global_variables_initializer())
 
-sess.run(graph['input'].assign(content_image))
+v=tf.Variable(graph['input'])
+v.assign(content_image)
+sess.run(v)
 c_l=content_loss(sess.run(graph['conv4_2']), graph['conv4_2'])
 
-sess.run(graph['input'].assign(style))
+sess.run(tf.assign(graph['input'],style))
 s_l=total_style_loss()
 
 total_loss = beta * c_l + alpha * s_l
