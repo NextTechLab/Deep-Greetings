@@ -158,8 +158,6 @@ for it in range(iter):
         # Print every 100 iteration.
         mixed_image = sess.run(graph['input'])
         print('Iteration %d' % (it))
-        print('sum : ', sess.run(tf.reduce_sum(mixed_image)))
-        print('cost: ', sess.run(total_loss))
 
         if not os.path.exists(output):
             os.mkdir(output)
