@@ -11,7 +11,7 @@ vgg=scipy.io.loadmat("vgg.mat")
 layers=vgg['layers']#0 l 0 0 2 0 0
 style_layer=["conv1_1","conv2_1","conv3_1","conv4_1","conv5_1"]
 #intializing output directory
-output="documents/greetings/output"
+output="/Users/aparna/documents/greetings/output"
 image_for_style="/Users/aparna/Documents/greetings/style.jpg"
 content_image="/Users/aparna/Documents/greetings/i.jpg"
 
@@ -148,7 +148,7 @@ total_loss = beta * c_l + alpha * s_l
 optimizer = tf.train.AdamOptimizer(2.0)
 train_step = optimizer.minimize(total_loss)
 
-sess.run(tf.global_variables_initializer())
+sess.run(tf.initialize_all_variables())
 
 sess.run(tf.Variable(graph['input']).assign(input_image))
 iter=1000
@@ -166,3 +166,4 @@ for it in range(iter):
 
         filename = 'output/%d.png' % (it)
         output(filename, mixed_image)
+
