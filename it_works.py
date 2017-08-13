@@ -18,13 +18,13 @@ image_width=800
 image_height=600
 color_channels=3
 
-beta=5#less content loss
-alpha=100 #
+beta=5#less content ratio
+alpha=100
 
 mean_values= np.array([123.68, 116.779, 103.939]).reshape((1,1,1,3))
 
 def preprocess_input(path):
-    image = scipy.misc.imread(path)
+    image = scipy.misc.imread(path,mode="MODE")
     image=scipy.misc.imresize(image, (image_height, image_width,color_channels))
     image = np.reshape(image, ((1,) + image.shape))
     image = image - mean_values
@@ -104,7 +104,7 @@ def generate_noise_image(content_image,):
 def content_loss(p,x):
     m = p.shape[1] * p.shape[2]
     n = p.shape[3]
-    return (1/(4*n**2*m**2))*tf.reduce_sum(tf.pow(x-p,2))
+    return (1/(4*n*m))*tf.reduce_sum(tf.pow(x-p,2))
 
 def gram_matrix(n,m,x):
     x = tf.reshape(x, (m, n))
@@ -158,10 +158,11 @@ for it in range(iter):
     if it%100 == 0:
         # Print every 100 iteration.
         mixed_image = sess.run(graph['input'])
+        print(mixed_image)
         print('Iteration %d' % (it))
 
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
 
-        filename = 'output/%d.png' % (it)
+        filename = 'output/%d.jpg' % (it)
         output(filename, mixed_image)
