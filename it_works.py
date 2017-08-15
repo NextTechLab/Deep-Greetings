@@ -27,7 +27,7 @@ alpha=100
 mean_values= np.array([123.68, 116.779, 103.939]).reshape((1,1,1,3))
 
 def preprocess_input(path):
-    image = scipy.misc.imread(path,mode="MODE")
+    image = scipy.misc.imread(path)
     image=scipy.misc.imresize(image, (image_height, image_width,color_channels))
     image = np.reshape(image, ((1,) + image.shape))
     image = image - mean_values
