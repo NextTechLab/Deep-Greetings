@@ -7,6 +7,9 @@ import scipy.misc
 
 import pandas as pd
 
+from nets
+
+
 
 style_layer=["conv1_1","conv2_1","conv3_1","conv4_1","conv5_1"]
 #intializing output directory
@@ -66,7 +69,7 @@ def model():
         return tf.nn.avg_pool(prev,ksize=[1,2,2,1],strides=[1,2,2,1],padding="SAME")
 
     graph = {}
-    graph['input'] = tf.cast(tf.Variable(np.zeros((1, image_height, image_width, color_channels))),tf.float32)
+    graph['input'] = graph['input'] = tf.Variable(np.zeros((1, image_height, image_width, color_channels)), name="in", dtype=tf.float32)
     graph['conv1_1'] = relu_plus_conv(graph['input'], 0)
     graph['conv1_2'] = relu_plus_conv(graph['conv1_1'], 2)
     graph['pool1'] = pooling(graph['conv1_1'])
@@ -137,11 +140,11 @@ input_image = generate_noise_image(content_image)
 sess.run(tf.global_variables_initializer())
 
 
-sess.run(tf.Variable(graph['input']).assign(content_image))
+sess.run(graph['input'].assign(content_image))
 c_l=content_loss(sess.run(graph['conv4_2']), graph['conv4_2'])
 
 
-sess.run(tf.Variable(graph['input']).assign(style))
+sess.run(graph['input'].assign(style))
 s_l=total_style_loss()
 
 total_loss = beta * c_l + alpha * s_l
@@ -151,7 +154,7 @@ train_step = optimizer.minimize(total_loss)
 
 sess.run(tf.global_variables_initializer())
 
-sess.run(tf.Variable(graph['input']).assign(input_image))
+sess.run(graph['input'].assign(input_image))
 iter=1000
 for it in range(iter):
     sess.run(train_step)
