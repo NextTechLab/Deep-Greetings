@@ -7,9 +7,6 @@ import scipy.misc
 
 import pandas as pd
 
-from nets
-
-
 
 style_layer=["conv1_1","conv2_1","conv3_1","conv4_1","conv5_1"]
 #intializing output directory
