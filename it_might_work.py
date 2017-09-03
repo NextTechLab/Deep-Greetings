@@ -7,6 +7,9 @@ import scipy.misc
 
 import pandas as pd
 
+from nets
+
+
 
 style_layer=["conv1_1","conv2_1","conv3_1","conv4_1","conv5_1"]
 #intializing output directory
@@ -104,7 +107,7 @@ def generate_noise_image(content_image,):
 def content_loss(p,x):
     m = p.shape[1] * p.shape[2]
     n = p.shape[3]
-    return (1/2)*tf.reduce_sum(tf.pow(x-p,2))
+    return (1/(4*n*m))*tf.reduce_sum(tf.pow(x-p,2))
 
 def gram_matrix(n,m,x):
     x = tf.reshape(x, (m, n))
@@ -116,7 +119,7 @@ def style_loss_single(a,g):
     A=gram_matrix(n,m,a)
     G=gram_matrix(n,m,g)
 
-    return (1/(4*n**2*m**2))*tf.reduce_sum(tf.pow(A-G,2))
+    return (1/2)*tf.reduce_sum(tf.pow(A-G,2))
 
 def total_style_loss():
     sum=0
