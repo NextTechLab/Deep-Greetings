@@ -1,15 +1,20 @@
 from PIL import Image,ImageDraw,ImageFont
+import random
+from auto_fest import get_fest
+fest=get_fest()
+temp=fest+"_"+".txt"
+import temp
 
 def superimpose():
     image=Image.open('output.jpg')
     w,h=image.size
-
+    var=random.randint(0, 11)
     draw=ImageDraw.Draw(image)
 
-    text="in masks and gowns we haunt the street,"
-    text1="and knock on doors for trick or treat."
-    text2="tonight we are the king and queen,"
-    text3="for oh tonight it's halloween!"
+    text=temp.(dict+var)[1]
+    text1=temp.(dict+var)[2]
+    text2=temp.(dict+var)[3]
+    text3=temp.(dict+var)[4]
 
     font = ImageFont.truetype("/usr/share/fonts/truetype/freefont/FreeSans.ttf", 30)
 
