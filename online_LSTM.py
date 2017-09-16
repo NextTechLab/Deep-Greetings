@@ -5,30 +5,39 @@ from keras.optimizers import adam
 import numpy as np
 import random
 import sys
-
-def sample(a, temperature=1.0):
-    a = np.log(a) / temperature
-    dist = np.exp(a) / np.sum(np.exp(a))
-    choices = range(len(a))
-    return np.random.choice(choices, p=dist)
+import tensorflow as tf
 
 def festival_input(fest):
-    fest = input("Enter the Festival:")
+
     if fest == "Halloween":
-        text = open('data/Halloween_data.txt').read().lower()
+        text = open('./data/Halloween_Data.txt').read().lower()
     elif fest == "Valentines":
-        text = open('data/valentines_day.txt').read().lower()
+        text = open('./data/valentines_day.txt').read().lower()
     elif fest == "Independence":
-        text = open('data/independence_day.txt').read().lower()
+        text = open('./data/independence_day.txt').read().lower()
 
     print('corpus length:', len(text))
 
-    words = set(open(text).read().lower().split())
+    words = text.split()
     print('total words:', len(words))
     word_indices = dict((c, i) for i, c in enumerate(words))
     reverse_indices = dict((i, c) for i, c in enumerate(words))
 
+    sequence_len = 40
+    step = 3
+    sentences = []
+    next_words = []
 
+    sentences_1 = []
+    list_words = []
+    list_words = text.lower().split()
+
+    for i in range(0, len(list_words) - sequence_len, step):
+        sentences_1 = ' '.join(list_words[i: i + sequence_len])
+        sentences.append(sentences_1)
+        next_words.append((list_words[i + sequence_len]))
+    print("Sequences {Length of the sentence}", len(sentences))
+    print("Length of next word:", len(next_words))
 
     print("Model Initialization Begin")
     model = Sequential()
@@ -38,72 +47,45 @@ def festival_input(fest):
     model.add(Dropout(0.2))
     model.add(Dense(len(words)))
     model.add(Activation("softmax"))
-    model.compile(loss='categorical_crossentropy', optimizer='adam')
-
+    model.compile(loss='sparse_categorical_crossentropy', optimizer='adam')
     if fest == "Halloween":
-        model.load_weights("./weights/Hal/weightfile.h5")
+        weightfile = "./weights/Hal/weightfile.h5"
     elif fest == "Valentines":
-        model.load_weights("./weights/val/weightfile.h5")
+        weightfile = "./weights/val/weightfile.h5"
     elif fest == "Independence":
-        model.load_weights("./weights/ind/weightfile.h5")
+        weightfile = "./weights/ind/weightfile.h5"
 
-    next_words = []
-    sequence_len = 30
-    step = 3
-    sentences = []
-    sentences_1 = []
-    list_words = []
-
-
-    list_words = text.lower().split()
-    for i in range(0, len(list_words) - sequence_len, step):
-        sentences_1 = ' '.join(list_words[i: i + sequence_len])
-        sentences.append(sentences_1)
-        next_words.append((list_words[i + sequence_len]))
-
-    for i, sentence in enumerate(sentences):
-        #print(sentence)
-        for t, word in enumerate(sentence.split()):
-            #print(i,t,word)
-            X[i, t, word_indices[word]] = 1
-        Y[i, word_indices[next_words[i]]] = 1
 
     start_index = random.randint(0, len(list_words) - sequence_len - 1)
-    generate_word = ''
+    generated_word = ''
     sentence = list_words[start_index: start_index + sequence_len]
 
-    generated_word += ' '.join(sentence)
+    generated_word += ''.join(sentence)
+    #print(sentence)
+    #sys.stdout.write(generated_word)
 
-    print("Generating", sentence)
-    sys.stdout.write(generated_word)
-    #print()
+    def sample(a, temperature=1.0):
+        a = np.log(a) / temperature
+        dist = np.exp(a) / np.sum(np.exp(a))
+        choices = range(len(a))
+        return np.random.choice(choices, p=dist)
 
     for i in range(30):
-        x = np.zeros((1, sequence_len, len(words)))
-        for t, word in enumerate(sentence):
-            x[0, t, word_indices[word]] = 1
+        x = np.zeros((1, len(sentence), len(words)))
+        for t, char in enumerate(sentence):
+            x[0, t, word_indices[char]] = 1.
 
         prediction = model.predict(x, verbose=0)[0]
-        next_index = sample(prediction, 0.2)
+        next_index = sample(prediction, 0.5)
         next_word = reverse_indices[next_index]
-        generated_word += next_word
+
         del sentence[0]
         sentence.append(next_word)
         sys.stdout.write(' ')
         sys.stdout.write(next_word)
         sys.stdout.flush()
-        print()
-    print(generate_word)
-    return(generate_word)
+    print()
 
-"""
-    for diversity in [0.2, 0.5, 1.0, 1.2]:
-        print()
-        print("-----Diversity", diversity)
-        generated_word = ''
-        sentence = list_words[start_index: start_index + sequence_len]
-        generated_word += ' '.join(sentence)
-        print("Generating", sentence)
-        sys.stdout.write(generated_word)
-        print()
-    """
+    return sentence
+
+festival_input(input("Enter the Festival:"))
