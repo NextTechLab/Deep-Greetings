@@ -8,7 +8,7 @@ import numpy as np
 import random
 import sys
 
-path = "./Halloween_Data.txt"
+path = "<<Enter data path here>>"
 
 text = open(path).read().lower()
 
@@ -22,7 +22,7 @@ print("words:", type(words))
 word_indices = dict((c, i) for i, c in enumerate(words))
 reverse_indices = dict((i, c) for i, c in enumerate(words))
 
-sequence_len = 30
+sequence_len = 40
 step = 3
 
 print("sequence length:", sequence_len, "step:", step)
@@ -61,7 +61,7 @@ model.add(LSTM(512, return_sequences=False))
 model.add(Dropout(0.2))
 model.add(Dense(len(words)))
 model.add(Activation("softmax"))
-model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
+model.compile(loss='categorical_crossentropy', optimizer='adam')
 
 def sample(a, temperature = 1.0):
     a = np.log(a) / temperature
