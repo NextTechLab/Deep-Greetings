@@ -1,27 +1,3 @@
-import os
-import sys
-import tensorflow as tf
-import numpy as np
-import scipy.io
-import scipy.misc
-
-import pandas as pd
-
-style_layer=["conv1_1","conv2_1","conv3_1","conv4_1","conv5_1"]
-#intializing output directory
-output_dir="./output"
-image_for_style="./blu.jpg"
-content_image="./try.jpg"
-
-image_width=800
-image_height=600
-color_channels=3
-
-beta=5#less content ratio
-alpha=200#or else try 200
-l=1e4
-
-mean_values= np.array([123.68, 116.779, 103.939]).reshape((1,1,1,3))
 
 def preprocess_input(path):
     image = scipy.misc.imread(path)
@@ -36,35 +12,30 @@ def output(path,image):
     image = np.clip(image, 0, 255).astype('uint8')
     scipy.misc.imsave(path, image)
 
-def model():
-    #loading the model
-    vgg = scipy.io.loadmat("vgg.mat")
-    layers = vgg['layers']  # 0 l 0 0 2 0 0
+def weight(l):
+    """
+    returns the weights of each of the required layers of VGG19
+    """
+    W=layers[0][l][0][0][2][0][0]       
+    b=layers[0][l][0][0][2][0][1]
+    return W,b
 
-    def weight(l):
-        """
-        returns the weights of each of the required layers of VGG19
-        """
-        W=layers[0][l][0][0][2][0][0]
-        b=layers[0][l][0][0][2][0][1]
-        return W,b
+def relu_func(input):
+    return tf.nn.relu(input)
 
-    def relu_func(input):
-        return tf.nn.relu(input)
+def conv2d(prev,l):
+    W=tf.constant(weight(l)[0]
+    b=weight(l)[1]
+    B= tf.constant(np.reshape(b, (b.size))
+    return tf.nn.conv2d(input=prev,filter=W,strides=[1,1,1,1],padding="SAME")+B
 
-    def conv2d(prev,l):
-        W=weight(l)[0]
-        b=weight(l)[1]
-        W=tf.constant(W)
-        B= tf.constant(np.reshape(b, (b.size)))
-        return tf.nn.conv2d(input=prev,filter=W,strides=[1,1,1,1],padding="SAME")+B
+def relu_plus_conv(prev,l):
+    return relu_func(conv2d(prev,l))
+                   
+def pooling(prev):
+    return tf.nn.avg_pool(prev,ksize=[1,2,2,1],strides=[1,2,2,1],padding="SAME")
 
-    def relu_plus_conv(prev,l):
-        return relu_func(conv2d(prev,l))
-
-    def pooling(prev):
-        return tf.nn.avg_pool(prev,ksize=[1,2,2,1],strides=[1,2,2,1],padding="SAME")
-
+def build():
     graph = {}
     graph['input'] = graph['input'] = tf.Variable(np.zeros((1, image_height, image_width, color_channels)), name="in", dtype=tf.float32)
     graph['conv1_1'] = relu_plus_conv(graph['input'], 0)
@@ -96,15 +67,13 @@ def model():
 
 def generate_noise_image(content_image,):
     noise_image = np.random.uniform(-20, 20,(1, image_height,image_width,color_channels)).astype('float32')
-    # White noise image from the content representation. Take a weighted average
-    # of the values
     input_image = noise_image * 0.4 + content_image * 0.6#probability
     return input_image
 
 def content_loss(p,x):
     m = p.shape[1] * p.shape[2]
     n = p.shape[3]
-    return (1/(2*n*m))*tf.reduce_sum(tf.pow(x-p,2))#removed 4*n*m
+    return (1/(2))*tf.reduce_sum(tf.pow(x-p,2))#removed 4*n*m
 
 def gram_matrix(n,m,x):
     x = tf.reshape(x, (m, n))
@@ -132,51 +101,47 @@ def diff_loss():
     return sum
 """
 #build the model
-sess = tf.InteractiveSession()
-content_image = preprocess_input(content_image)
+def main():
+    #build the model
+    sess = tf.InteractiveSession()
+    content_image = preprocess_input(content_image)
 
 
-style=preprocess_input(image_for_style)
-graph= model()
+    style=preprocess_input(image_for_style)
+    graph= model()
 
-input_image = generate_noise_image(content_image)
+    input_image = generate_noise_image(content_image)
 
-sess.run(tf.global_variables_initializer())
-
-
-sess.run(graph['input'].assign(content_image))
-c_l=content_loss(sess.run(graph['conv4_2']), graph['conv4_2'])
+    sess.run(tf.global_variables_initializer())
 
 
-sess.run(graph['input'].assign(style))
-s_l=total_style_loss()
-"""
-sess.run(graph['input'].assign(content_image))
-d_l=diff_loss()
-"""
-total_loss=beta*c_l +alpha*s_l
-#total_loss = beta * c_l + alpha * s_l + l*d_l
+    sess.run(graph['input'].assign(content_image))
+    c_l=content_loss(sess.run(graph['conv4_2']), graph['conv4_2'])
 
-optimizer = tf.train.AdamOptimizer(6.0,0.9,0.999,1e-8)
-train_step = optimizer.minimize(total_loss)
-"""
-optimizer = tf.train.AdamOptimizer(10,0.9,0.999,1e-8)
-train_step = optimizer.minimize(total_loss)
-"""
-sess.run(tf.global_variables_initializer())
 
-sess.run(graph['input'].assign(input_image))
-iter=1000
-for it in range(iter):
-    sess.run(train_step)
-    if it%100 == 0:
-        # Print every 100 iteration.
-        mixed_image = sess.run(graph['input'])
-        #print(mixed_image)
-        print('Iteration %d' % (it))
+    sess.run(graph['input'].assign(style))
+    s_l=total_style_loss()
+    """
+    sess.run(graph['input'].assign(content_image))
+    d_l=diff_loss()
+    """
+    total_loss=beta*c_l +alpha*s_l
+    #total_loss = beta * c_l + alpha * s_l + l*d_l
 
-        if not os.path.exists(output_dir):
-            os.mkdir(output_dir)
+    optimizer = tf.train.AdamOptimizer(6.0,0.9,0.999,1e-8)
+    train_step = optimizer.minimize(total_loss)
+    """
+    optimizer = tf.train.AdamOptimizer(10,0.9,0.999,1e-8)
+    train_step = optimizer.minimize(total_loss)
+    """
+    sess.run(tf.global_variables_initializer())
 
-        filename = 'output/%d.jpg' % (it)
-        output(filename, mixed_image)
+    sess.run(graph['input'].assign(input_image))
+    iter=1000
+    for it in range(iter):
+        sess.run(train_step)
+    mixed_image=sess.run(graph['input'])
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+    filename='output.jpg'
+    output(filename,mixed_image)
