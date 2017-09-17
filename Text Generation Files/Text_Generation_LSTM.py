@@ -55,10 +55,10 @@ for i, sentence in enumerate(sentences):
 print("Model Initialization Begin")
 model = Sequential()
 
-model.add(LSTM(512, return_sequences=True, input_shape=(sequence_len, len(words))))
+model.add(LSTM(768, return_sequences=True, input_shape=(sequence_len, len(words))))
 model.add(Dropout(0.2))
-model.add(LSTM(512, return_sequences=False))
-model.add(Dropout(0.2))
+model.add(LSTM(768, return_sequences=False))
+model.add(Dropout(0.3))
 model.add(Dense(len(words)))
 model.add(Activation("softmax"))
 model.compile(loss='categorical_crossentropy', optimizer='adam')
@@ -74,11 +74,11 @@ for iteration in range(1, 20):
     print('-' * 50)
     print("Iteration, ", iteration)
     model.fit(X, Y, batch_size=128, epochs=5)
-    model.save_weights("./weightfile.h5", overwrite=True)
+    model.save_weights("./weights.h5", overwrite=True)
 
     start_index = random.randint(0, len(list_words) - sequence_len - 1)
 
-    for diversity in [0.2, 0.5, 1.0, 1.2]:
+    for diversity in [0.3, 0.7, 1.0, 1.2]:
         print()
         print("-----Diversity", diversity)
         generated_word = ''
@@ -88,7 +88,7 @@ for iteration in range(1, 20):
         sys.stdout.write(generated_word)
         print()
 
-        for i in range(100):
+        for i in range(22):
             x = np.zeros((1, sequence_len, len(words)))
             for t, word in enumerate(sentence):
                 x[0, t, word_indices[word]] = 1
