@@ -72,8 +72,8 @@ def festival_input(fest):
 
     for i in range(30):
         x = np.zeros((1, len(sentence), len(words)))
-        for t, char in enumerate(sentence):
-            x[0, t, word_indices[char]] = 1.
+        for t, word in enumerate(sentence):
+            x[0, t, word_indices[word]] = 1.
 
         prediction = model.predict(x, verbose=0)[0]
         next_index = sample(prediction, 0.5)
