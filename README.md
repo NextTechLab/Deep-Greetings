@@ -17,9 +17,13 @@ For neural style tranfers, the various style images we use for the festivals are
 
 The LSTM model is trained on the following text for the following festivals:
 1. Valentines day:love poems
+
 2.Independance Day:Freedom Speeches
+
 3.Halloween: Horror stories and poems
+
 4.Diwali: Diwali greetings
+
 5.Christmas:Christmas Carols
 
 to run the entire program, run main.py
