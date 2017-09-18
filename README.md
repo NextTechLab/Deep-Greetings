@@ -13,7 +13,7 @@ For neural style tranfers, the various style images we use for the festivals are
 4.Diwali:
 ![alt text](style_images/diwali.jpg "Input image")
 5.Christmas:
-![alt text](style_images/chritmas.jpg "Input image")
+![alt text](style_images/christmas.jpg "Input image")
 
 The LSTM model is trained on the following text for the following festivals:
 1. Valentines day:love poems
