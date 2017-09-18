@@ -9,6 +9,6 @@ SAMPLE OUTPUT:
 (generated for halloween)
 
 INPUT IMAGE:
-![alt text](https://raw.githubusercontent.com/Aparnaakk/Deep-Greetings/38-Real-Haunted-Houses-06.jpg)
+![alt tag](http://http://placesyoullgo.s3-us-west-2.amazonaws.com/wp-content/uploads/2015/01/38-Real-Haunted-Houses-06.jpg)
 OUTPUT CARD USING HALLOWEEN FILTER:
 ![alt text](https://raw.githubusercontent.com/Aparnaakk/Deep-Greetings/style_text.jpg)
